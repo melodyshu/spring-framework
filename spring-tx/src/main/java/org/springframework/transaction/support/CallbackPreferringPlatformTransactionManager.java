@@ -34,6 +34,11 @@ import org.springframework.transaction.TransactionException;
  * {@link org.springframework.transaction.interceptor.TransactionInterceptor}
  * detect and use this PlatformTransactionManager variant automatically.
  *
+ * <p>
+ *     {@link org.springframework.transaction.PlatformTransactionManager}的扩展，可以在事务内进行回调
+ * <p>
+ *
+ *
  * @author Juergen Hoeller
  * @since 2.0
  * @see TransactionTemplate

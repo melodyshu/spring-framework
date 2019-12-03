@@ -97,37 +97,37 @@ public abstract class TransactionSynchronizationManager {
 	private static final Log logger = LogFactory.getLog(TransactionSynchronizationManager.class);
 
 	/**
-	 * 事务绑定的资源
+	 * 保存每个事务线程绑定的资源,比如connection和session资源
 	 */
 	private static final ThreadLocal<Map<Object, Object>> resources =
 			new NamedThreadLocal<>("Transactional resources");
 
 	/**
-	 * 事务同步
+	 * 保存每个事务对应的事务同步回调接口
 	 */
 	private static final ThreadLocal<Set<TransactionSynchronization>> synchronizations =
 			new NamedThreadLocal<>("Transaction synchronizations");
 
 	/**
-	 * 当前事务名称
+	 * 保存每个事务线程对应的事务名称
 	 */
 	private static final ThreadLocal<String> currentTransactionName =
 			new NamedThreadLocal<>("Current transaction name");
 
 	/**
-	 * 当前事务只读状态
+	 * 保存每个事务线程对应的事务只读状态
 	 */
 	private static final ThreadLocal<Boolean> currentTransactionReadOnly =
 			new NamedThreadLocal<>("Current transaction read-only status");
 
 	/**
-	 * 当前事务隔离级别
+	 * 保存每个事务线程对应的事务隔离级别
 	 */
 	private static final ThreadLocal<Integer> currentTransactionIsolationLevel =
 			new NamedThreadLocal<>("Current transaction isolation level");
 
 	/**
-	 * 实际事务激活状态
+	 * 保存每个事务线程对应的事务激活状态
 	 */
 	private static final ThreadLocal<Boolean> actualTransactionActive =
 			new NamedThreadLocal<>("Actual transaction active");
@@ -252,8 +252,11 @@ public abstract class TransactionSynchronizationManager {
 
 	/**
 	 * Unbind a resource for the given key from the current thread.
-	 * @param key the key to unbind (usually the resource factory)
-	 * @return the previously bound value, or {@code null} if none bound
+	 * <p>
+	 *     从当前线程中根据给定的key删除绑定的资源
+	 * </p>
+	 * @param key the key to unbind (usually the resource factory) <br>需要删除的key（通常是资源工厂）
+	 * @return the previously bound value, or {@code null} if none bound <br>返回原来绑定的值
 	 */
 	public static Object unbindResourceIfPossible(Object key) {
 		Object actualKey = TransactionSynchronizationUtils.unwrapResourceIfNecessary(key);
@@ -262,6 +265,9 @@ public abstract class TransactionSynchronizationManager {
 
 	/**
 	 * Actually remove the value of the resource that is bound for the given key.
+	 * <p>
+	 *     通过key删除绑定资源的执行方法
+	 * </p>
 	 */
 	private static Object doUnbindResource(Object actualKey) {
 		Map<Object, Object> map = resources.get();
@@ -270,10 +276,12 @@ public abstract class TransactionSynchronizationManager {
 		}
 		Object value = map.remove(actualKey);
 		// Remove entire ThreadLocal if empty...
+		//如果删除后，map变为空map，则从线程绑定中删除
 		if (map.isEmpty()) {
 			resources.remove();
 		}
 		// Transparently suppress a ResourceHolder that was marked as void...
+		//如果ResourceHolder已经无效，则返回null
 		if (value instanceof ResourceHolder && ((ResourceHolder) value).isVoid()) {
 			value = null;
 		}
@@ -546,6 +554,9 @@ public abstract class TransactionSynchronizationManager {
 	/**
 	 * Clear the entire transaction synchronization state for the current thread:
 	 * registered synchronizations as well as the various transaction characteristics.
+	 * <p>
+	 *     清除当前线程所有的事务同步状态
+	 * </p>
 	 * @see #clearSynchronization()
 	 * @see #setCurrentTransactionName
 	 * @see #setCurrentTransactionReadOnly
@@ -553,10 +564,15 @@ public abstract class TransactionSynchronizationManager {
 	 * @see #setActualTransactionActive
 	 */
 	public static void clear() {
+		//停用当前线程的事务同步
 		clearSynchronization();
+		//重置当前线程的的事务名称
 		setCurrentTransactionName(null);
+		//重置当前线程的事务只读标志
 		setCurrentTransactionReadOnly(false);
+		//重置当前线程的事务隔离级别
 		setCurrentTransactionIsolationLevel(null);
+		//重置当前线程的激活状态
 		setActualTransactionActive(false);
 	}
 
